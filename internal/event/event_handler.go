@@ -17,7 +17,7 @@ type EventHandler struct {
 
 func NewEventHandler(eventService EventService, logError func(context.Context, string)) *EventHandler {
 	modelType := reflect.TypeOf(Event{})
-	searchModelType := reflect.TypeOf(EventSM{})
+	searchModelType := reflect.TypeOf(EventFilter{})
 	searchHandler := search.NewSearchHandler(eventService.Search, modelType, searchModelType, logError, nil)
 	genericHandler := sv.NewLoadHandler(eventService.Load, modelType, logError)
 	return &EventHandler{LoadHandler: genericHandler, SearchHandler: searchHandler, Service: eventService}

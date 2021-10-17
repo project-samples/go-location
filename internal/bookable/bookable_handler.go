@@ -17,7 +17,7 @@ type BookableHandler struct {
 
 func NewBookableHandler(bookableService BookableService, logError func(context.Context, string)) *BookableHandler {
 	modelType := reflect.TypeOf(Bookable{})
-	searchModelType := reflect.TypeOf(BookableSM{})
+	searchModelType := reflect.TypeOf(BookableFilter{})
 	searchHandler := search.NewSearchHandler(bookableService.Search, modelType, searchModelType, logError, nil)
 	genericHandler := sv.NewLoadHandler(bookableService.Load, modelType, logError)
 	return &BookableHandler{LoadHandler: genericHandler, SearchHandler: searchHandler, Service: bookableService}

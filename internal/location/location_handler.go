@@ -17,7 +17,7 @@ type LocationHandler struct {
 
 func NewLocationHandler(locationService LocationService, logError func(context.Context, string)) *LocationHandler {
 	modelType := reflect.TypeOf(Location{})
-	searchModelType := reflect.TypeOf(LocationSM{})
+	searchModelType := reflect.TypeOf(LocationFilter{})
 	searchHandler := search.NewSearchHandler(locationService.Search, modelType, searchModelType, logError, nil)
 	genericHandler := sv.NewLoadHandler(locationService.Load, modelType, logError)
 	return &LocationHandler{LoadHandler: genericHandler, SearchHandler: searchHandler, Service: locationService}

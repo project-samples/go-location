@@ -8,8 +8,8 @@ import (
 )
 
 type Root struct {
-	Server     service.ServerConfig `mapstructure:"server"`
-	Mongo      mongo.MongoConfig    `mapstructure:"mongo"`
-	Log        log.Config           `mapstructure:"log"`
-	MiddleWare mid.LogConfig        `mapstructure:"middleware"`
+	Server     service.ServerConf `mapstructure:"server"`
+	Mongo      mongo.MongoConfig  `mapstructure:"mongo"`
+	Log        log.Config         `mapstructure:"log"`
+	MiddleWare mid.LogConfig      `mapstructure:"middleware"`
 }

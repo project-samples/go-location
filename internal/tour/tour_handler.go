@@ -17,7 +17,7 @@ type TourHandler struct {
 
 func NewTourHandler(tourService TourService, logError func(context.Context, string)) *TourHandler {
 	modelType := reflect.TypeOf(Tour{})
-	searchModelType := reflect.TypeOf(TourSM{})
+	searchModelType := reflect.TypeOf(TourFilter{})
 	searchHandler := search.NewSearchHandler(tourService.Search, modelType, searchModelType, logError, nil)
 	genericHandler := sv.NewLoadHandler(tourService.Load, modelType, logError)
 	return &TourHandler{LoadHandler: genericHandler, SearchHandler: searchHandler, Service: tourService}
