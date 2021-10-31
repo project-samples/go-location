@@ -10,6 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type TourService interface {
+	search.SearchService
+	service.ViewService
+}
+
 type MongoTourService struct {
 	search.SearchService
 	service.ViewService

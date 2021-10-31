@@ -11,6 +11,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type BookableService interface {
+	search.SearchService
+	service.ViewService
+}
+
 type MongoBookableService struct {
 	search.SearchService
 	service.ViewService
