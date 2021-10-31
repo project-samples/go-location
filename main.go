@@ -24,13 +24,13 @@ func main() {
 	r := mux.NewRouter()
 	log.Initialize(conf.Log)
 	r.Use(mid.BuildContext)
-	logger := mid.NewStructuredLogger()
+	logger := mid.NewLogger()
 	if log.IsInfoEnable() {
 		r.Use(mid.Logger(conf.MiddleWare, log.InfoFields, logger))
 	}
 	r.Use(mid.Recover(log.ErrorMsg))
 
-	er2 := app.Route(r, context.Background(), conf.Mongo)
+	er2 := app.Route(r, context.Background(), conf)
 	if er2 != nil {
 		panic(er2)
 	}

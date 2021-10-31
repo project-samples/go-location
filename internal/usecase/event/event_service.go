@@ -1,32 +1,29 @@
 package event
 
 import (
-	"reflect"
+	"context"
 
-	mgo "github.com/core-go/mongo"
-	"github.com/core-go/mongo/geo"
-	"github.com/core-go/mongo/query"
-	"github.com/core-go/search"
-	"github.com/core-go/service"
-	"go.mongodb.org/mongo-driver/mongo"
+	sv "github.com/core-go/service"
 )
 
 type EventService interface {
-	search.SearchService
-	service.ViewService
+	Load(ctx context.Context, id string) (*Event, error)
 }
 
-type MongoEventService struct {
-	search.SearchService
-	service.ViewService
-	Mapper mgo.Mapper
+func NewEventService(repository sv.ViewRepository) EventService {
+	return &eventService{repository: repository}
 }
 
-func NewEventService(db *mongo.Database) *MongoEventService {
-	var model Event
-	modelType := reflect.TypeOf(model)
-	mapper := geo.NewMapper(modelType)
-	queryBuilder := query.NewBuilder(modelType)
-	searchService, viewService := mgo.NewSearchLoaderWithQuery(db, "event", modelType, queryBuilder.BuildQuery, search.GetSort, mapper.DbToModel)
-	return &MongoEventService{SearchService: searchService, ViewService: viewService, Mapper: mapper}
+type eventService struct {
+	repository sv.ViewRepository
+}
+
+func (s *eventService) Load(ctx context.Context, id string) (*Event, error) {
+	var Event Event
+	ok, err := s.repository.LoadAndDecode(ctx, id, &Event)
+	if !ok {
+		return nil, err
+	} else {
+		return &Event, err
+	}
 }

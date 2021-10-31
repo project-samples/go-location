@@ -1,29 +1,29 @@
 package tour
 
 import (
-	"reflect"
+	"context"
 
-	mgo "github.com/core-go/mongo"
-	"github.com/core-go/mongo/query"
-	"github.com/core-go/search"
-	"github.com/core-go/service"
-	"go.mongodb.org/mongo-driver/mongo"
+	sv "github.com/core-go/service"
 )
 
 type TourService interface {
-	search.SearchService
-	service.ViewService
+	Load(ctx context.Context, id string) (*Tour, error)
 }
 
-type MongoTourService struct {
-	search.SearchService
-	service.ViewService
+func NewTourService(repository sv.ViewRepository) TourService {
+	return &tourService{repository: repository}
 }
 
-func NewTourService(db *mongo.Database) *MongoTourService {
-	var model Tour
-	modelType := reflect.TypeOf(model)
-	queryBuilder := query.NewBuilder(modelType)
-	searchService, viewService := mgo.NewSearchLoaderWithQuery(db, "tour", modelType, queryBuilder.BuildQuery, search.GetSort)
-	return &MongoTourService{SearchService: searchService, ViewService: viewService}
+type tourService struct {
+	repository sv.ViewRepository
+}
+
+func (s *tourService) Load(ctx context.Context, id string) (*Tour, error) {
+	var Tour Tour
+	ok, err := s.repository.LoadAndDecode(ctx, id, &Tour)
+	if !ok {
+		return nil, err
+	} else {
+		return &Tour, err
+	}
 }

@@ -5,7 +5,11 @@ import (
 	"github.com/core-go/health"
 	"github.com/core-go/log"
 	"github.com/core-go/mongo"
+	"github.com/core-go/mongo/geo"
+	"github.com/core-go/mongo/query"
+	"github.com/core-go/search"
 	"github.com/teris-io/shortid"
+	"reflect"
 
 	"go-service/internal/usecase/bookable"
 	"go-service/internal/usecase/event"
@@ -15,14 +19,14 @@ import (
 
 type ApplicationContext struct {
 	HealthHandler   *health.Handler
-	LocationHandler *location.LocationHandler
-	EventHandler    *event.EventHandler
-	BookableHandler *bookable.BookableHandler
-	TourHandler     *tour.TourHandler
+	LocationHandler location.LocationHandler
+	EventHandler    event.EventHandler
+	BookableHandler bookable.BookableHandler
+	TourHandler     tour.TourHandler
 }
 
-func NewApp(ctx context.Context, mongoConfig mongo.MongoConfig) (*ApplicationContext, error) {
-	db, err := mongo.Setup(ctx, mongoConfig)
+func NewApp(ctx context.Context, root Root) (*ApplicationContext, error) {
+	db, err := mongo.Setup(ctx, root.Mongo)
 	if err != nil {
 		return nil, err
 	}
@@ -31,14 +35,38 @@ func NewApp(ctx context.Context, mongoConfig mongo.MongoConfig) (*ApplicationCon
 	mongoChecker := mongo.NewHealthChecker(db)
 	healthHandler := health.NewHandler(mongoChecker)
 
-	locationService := location.NewLocationService(db)
-	locationHandler := location.NewLocationHandler(locationService, logError)
-	eventService := event.NewEventService(db)
-	eventHandler := event.NewEventHandler(eventService, logError)
-	bookableService := bookable.NewBookableService(db)
-	bookableHandler := bookable.NewBookableHandler(bookableService, logError)
-	tourService := tour.NewTourService(db)
-	tourHandler := tour.NewTourHandler(tourService, logError)
+	locationType := reflect.TypeOf(location.Location{})
+	locationMapper := geo.NewMapper(locationType)
+	locationQueryBuilder := query.NewBuilder(locationType)
+	locationSearchBuilder := mongo.NewSearchBuilder(db, "location", locationQueryBuilder.BuildQuery, search.GetSort, locationMapper.DbToModel)
+	locationRepository := mongo.NewViewRepository(db, "location", locationType, locationMapper.DbToModel)
+	locationService := location.NewLocationService(locationRepository)
+	locationHandler := location.NewLocationHandler(locationSearchBuilder.Search, locationService, logError, nil)
+
+	eventType := reflect.TypeOf(event.Event{})
+	eventMapper := geo.NewMapper(eventType)
+	eventQueryBuilder := query.NewBuilder(eventType)
+	eventSearchBuilder := mongo.NewSearchBuilder(db, "event", eventQueryBuilder.BuildQuery, search.GetSort, eventMapper.DbToModel)
+	eventRepository := mongo.NewViewRepository(db, "event", eventType, eventMapper.DbToModel)
+	eventService := event.NewEventService(eventRepository)
+	eventHandler := event.NewEventHandler(eventSearchBuilder.Search, eventService, logError, nil)
+
+	bookableType := reflect.TypeOf(bookable.Bookable{})
+	bookableMapper := geo.NewMapper(bookableType)
+	bookableQueryBuilder := query.NewBuilder(bookableType)
+	bookableSearchBuilder := mongo.NewSearchBuilder(db, "bookable", bookableQueryBuilder.BuildQuery, search.GetSort, bookableMapper.DbToModel)
+	bookableRepository := mongo.NewViewRepository(db, "bookable", bookableType, bookableMapper.DbToModel)
+	bookableService := bookable.NewBookableService(bookableRepository)
+	bookableHandler := bookable.NewBookableHandler(bookableSearchBuilder.Search, bookableService, logError, nil)
+
+	tourType := reflect.TypeOf(tour.Tour{})
+	tourMapper := geo.NewMapper(tourType)
+	tourQueryBuilder := query.NewBuilder(tourType)
+	tourSearchBuilder := mongo.NewSearchBuilder(db, "tour", tourQueryBuilder.BuildQuery, search.GetSort, tourMapper.DbToModel)
+	tourRepository := mongo.NewViewRepository(db, "tour", tourType, tourMapper.DbToModel)
+	tourService := tour.NewTourService(tourRepository)
+	tourHandler := tour.NewTourHandler(tourSearchBuilder.Search, tourService, logError, nil)
+
 	return &ApplicationContext{
 		HealthHandler:   healthHandler,
 		LocationHandler: locationHandler,

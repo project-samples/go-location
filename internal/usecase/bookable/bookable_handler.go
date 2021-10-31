@@ -2,32 +2,35 @@ package bookable
 
 import (
 	"context"
-	"net/http"
-	"reflect"
-
 	"github.com/core-go/search"
 	sv "github.com/core-go/service"
+	"net/http"
+	"reflect"
 )
 
-type BookableHandler struct {
-	*sv.LoadHandler
-	*search.SearchHandler
-	Service BookableService
+type BookableHandler interface {
+	Search(w http.ResponseWriter, r *http.Request)
+	Load(w http.ResponseWriter, r *http.Request)
 }
 
-func NewBookableHandler(bookableService BookableService, logError func(context.Context, string)) *BookableHandler {
-	modelType := reflect.TypeOf(Bookable{})
+func NewBookableHandler(find func(context.Context, interface{}, interface{}, int64, ...int64) (int64, string, error), service BookableService, logError func(context.Context, string), writeLog func(context.Context, string, string, bool, string) error) BookableHandler {
 	searchModelType := reflect.TypeOf(BookableFilter{})
-	searchHandler := search.NewSearchHandler(bookableService.Search, modelType, searchModelType, logError, nil)
-	genericHandler := sv.NewLoadHandler(bookableService.Load, modelType, logError)
-	return &BookableHandler{LoadHandler: genericHandler, SearchHandler: searchHandler, Service: bookableService}
+	modelType := reflect.TypeOf(Bookable{})
+	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
+	return &bookableHandler{service: service, SearchHandler: searchHandler, Error: logError, Log: writeLog}
 }
 
-func (h *BookableHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	result, err := h.Service.All(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+type bookableHandler struct {
+	service BookableService
+	*search.SearchHandler
+	Error func(context.Context, string)
+	Log   func(context.Context, string, string, bool, string) error
+}
+
+func (h *bookableHandler) Load(w http.ResponseWriter, r *http.Request) {
+	id := sv.GetRequiredParam(w, r)
+	if len(id) > 0 {
+		result, err := h.service.Load(r.Context(), id)
+		sv.RespondModel(w, r, result, err, h.Error, nil)
 	}
-	sv.JSON(w, http.StatusOK, result)
 }

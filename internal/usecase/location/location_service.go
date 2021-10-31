@@ -1,32 +1,29 @@
 package location
 
 import (
-	"reflect"
+	"context"
 
-	mgo "github.com/core-go/mongo"
-	"github.com/core-go/mongo/geo"
-	"github.com/core-go/mongo/query"
-	"github.com/core-go/search"
-	"github.com/core-go/service"
-	"go.mongodb.org/mongo-driver/mongo"
+	sv "github.com/core-go/service"
 )
 
 type LocationService interface {
-	search.SearchService
-	service.ViewService
+	Load(ctx context.Context, id string) (*Location, error)
 }
 
-type MongoLocationService struct {
-	search.SearchService
-	service.ViewService
-	Mapper mgo.Mapper
+func NewLocationService(repository sv.ViewRepository) LocationService {
+	return &locationService{repository: repository}
 }
 
-func NewLocationService(db *mongo.Database) *MongoLocationService {
-	var model Location
-	modelType := reflect.TypeOf(model)
-	mapper := geo.NewMapper(modelType)
-	queryBuilder := query.NewBuilder(modelType)
-	searchService, genericService := mgo.NewSearchLoaderWithQuery(db, "location", modelType, queryBuilder.BuildQuery, search.GetSort, mapper.DbToModel)
-	return &MongoLocationService{SearchService: searchService, ViewService: genericService, Mapper: mapper}
+type locationService struct {
+	repository sv.ViewRepository
+}
+
+func (s *locationService) Load(ctx context.Context, id string) (*Location, error) {
+	var Location Location
+	ok, err := s.repository.LoadAndDecode(ctx, id, &Location)
+	if !ok {
+		return nil, err
+	} else {
+		return &Location, err
+	}
 }
