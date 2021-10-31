@@ -1,4 +1,4 @@
-package mongo
+package bookable
 
 import (
 	"reflect"
@@ -9,8 +9,6 @@ import (
 	"github.com/core-go/search"
 	"github.com/core-go/service"
 	"go.mongodb.org/mongo-driver/mongo"
-
-	. "go-service/internal/bookable"
 )
 
 type MongoBookableService struct {

@@ -8,13 +8,9 @@ import (
 	"github.com/teris-io/shortid"
 
 	"go-service/internal/bookable"
-	mb "go-service/internal/bookable/mongo"
 	"go-service/internal/event"
-	me "go-service/internal/event/mongo"
 	"go-service/internal/location"
-	ml "go-service/internal/location/mongo"
 	"go-service/internal/tour"
-	mt "go-service/internal/tour/mongo"
 )
 
 type ApplicationContext struct {
@@ -35,13 +31,13 @@ func NewApp(ctx context.Context, mongoConfig mongo.MongoConfig) (*ApplicationCon
 	mongoChecker := mongo.NewHealthChecker(db)
 	healthHandler := health.NewHandler(mongoChecker)
 
-	locationService := ml.NewLocationService(db)
+	locationService := location.NewLocationService(db)
 	locationHandler := location.NewLocationHandler(locationService, logError)
-	eventService := me.NewEventService(db)
+	eventService := event.NewEventService(db)
 	eventHandler := event.NewEventHandler(eventService, logError)
-	bookableService := mb.NewBookableService(db)
+	bookableService := bookable.NewBookableService(db)
 	bookableHandler := bookable.NewBookableHandler(bookableService, logError)
-	tourService := mt.NewTourService(db)
+	tourService := tour.NewTourService(db)
 	tourHandler := tour.NewTourHandler(tourService, logError)
 	return &ApplicationContext{
 		HealthHandler:   healthHandler,
