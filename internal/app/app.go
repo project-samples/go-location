@@ -7,10 +7,10 @@ import (
 	"github.com/core-go/mongo"
 	"github.com/teris-io/shortid"
 
-	"go-service/internal/bookable"
-	"go-service/internal/event"
-	"go-service/internal/location"
-	"go-service/internal/tour"
+	"go-service/internal/usecase/bookable"
+	"go-service/internal/usecase/event"
+	"go-service/internal/usecase/location"
+	"go-service/internal/usecase/tour"
 )
 
 type ApplicationContext struct {
