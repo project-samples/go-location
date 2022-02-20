@@ -6,8 +6,8 @@ import (
 	"github.com/core-go/log"
 	"github.com/core-go/mongo"
 	"github.com/core-go/mongo/geo"
-	"github.com/core-go/mongo/query"
 	"github.com/core-go/search"
+	"github.com/core-go/search/mongo"
 	"github.com/teris-io/shortid"
 	"reflect"
 
