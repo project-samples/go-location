@@ -3,7 +3,7 @@ server:
   port: 8080
 
 mongo:
-  uri: mongodb+srv://dbUser:Demoaccount1@projectdemo.g0lah.mongodb.net
+  uri: mongodb://localhost:27017
   database: location
 
 log:
