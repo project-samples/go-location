@@ -19,11 +19,11 @@ type eventService struct {
 }
 
 func (s *eventService) Load(ctx context.Context, id string) (*Event, error) {
-	var Event Event
-	ok, err := s.repository.LoadAndDecode(ctx, id, &Event)
+	var event Event
+	ok, err := s.repository.LoadAndDecode(ctx, id, &event)
 	if !ok {
 		return nil, err
 	} else {
-		return &Event, err
+		return &event, err
 	}
 }

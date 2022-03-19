@@ -19,11 +19,11 @@ type tourService struct {
 }
 
 func (s *tourService) Load(ctx context.Context, id string) (*Tour, error) {
-	var Tour Tour
-	ok, err := s.repository.LoadAndDecode(ctx, id, &Tour)
+	var tour Tour
+	ok, err := s.repository.LoadAndDecode(ctx, id, &tour)
 	if !ok {
 		return nil, err
 	} else {
-		return &Tour, err
+		return &tour, err
 	}
 }

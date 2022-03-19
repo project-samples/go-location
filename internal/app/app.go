@@ -47,9 +47,9 @@ func NewApp(ctx context.Context, root Root) (*ApplicationContext, error) {
 	eventMapper := geo.NewMapper(eventType)
 	eventQuery := query.UseQuery(eventType)
 	eventSearchBuilder := mongo.NewSearchBuilder(db, "event", eventQuery, search.GetSort, eventMapper.DbToModel)
-	eventRepository := mongo.NewViewRepository(db, "event", eventType, eventMapper.DbToModel)
-	eventService := event.NewEventService(eventRepository)
-	eventHandler := event.NewEventHandler(eventSearchBuilder.Search, eventService, logError, nil)
+	loadEvent := mongo.Load(db, "event", eventType, eventMapper.DbToModel)
+	// eventService := event.NewEventService(eventRepository)
+	eventHandler := event.NewEventHandler(eventSearchBuilder.Search, loadEvent, logError, nil)
 
 	bookableType := reflect.TypeOf(bookable.Bookable{})
 	bookableMapper := geo.NewMapper(bookableType)

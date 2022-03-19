@@ -1,6 +1,6 @@
 server:
   name: go-backoffice
-  port: 8080
+  port: 8082
 
 mongo:
   uri: mongodb://localhost:27017

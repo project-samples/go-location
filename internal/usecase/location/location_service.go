@@ -19,11 +19,11 @@ type locationService struct {
 }
 
 func (s *locationService) Load(ctx context.Context, id string) (*Location, error) {
-	var Location Location
-	ok, err := s.repository.LoadAndDecode(ctx, id, &Location)
+	var location Location
+	ok, err := s.repository.LoadAndDecode(ctx, id, &location)
 	if !ok {
 		return nil, err
 	} else {
-		return &Location, err
+		return &location, err
 	}
 }

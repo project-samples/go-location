@@ -19,11 +19,11 @@ type bookableService struct {
 }
 
 func (s *bookableService) Load(ctx context.Context, id string) (*Bookable, error) {
-	var Bookable Bookable
-	ok, err := s.repository.LoadAndDecode(ctx, id, &Bookable)
+	var bookable Bookable
+	ok, err := s.repository.LoadAndDecode(ctx, id, &bookable)
 	if !ok {
 		return nil, err
 	} else {
-		return &Bookable, err
+		return &bookable, err
 	}
 }
