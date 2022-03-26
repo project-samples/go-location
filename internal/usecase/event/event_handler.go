@@ -32,10 +32,6 @@ func (h *eventHandler) Load(w http.ResponseWriter, r *http.Request) {
 	if len(id) > 0 {
 		var event Event
 		ok, err := h.load(r.Context(), id, &event)
-		if err == nil && !ok {
-			sv.JSON(w, http.StatusNotFound, nil)
-		} else {
-			sv.RespondModel(w, r, event, err, h.Error, nil)
-		}
+		sv.RespondIfFound(w, r, event, ok, err, h.Error, nil)
 	}
 }

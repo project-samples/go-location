@@ -13,15 +13,15 @@ type LocationHandler interface {
 	Load(w http.ResponseWriter, r *http.Request)
 }
 
-func NewLocationHandler(find func(context.Context, interface{}, interface{}, int64, ...int64) (int64, string, error), load func(ctx context.Context, id interface{}, result interface{}) (bool, error), logError func(context.Context, string), writeLog func(context.Context, string, string, bool, string) error) LocationHandler {
+func NewLocationHandler(find func(context.Context, interface{}, interface{}, int64, ...int64) (int64, string, error), service LocationService, logError func(context.Context, string), writeLog func(context.Context, string, string, bool, string) error) LocationHandler {
 	searchModelType := reflect.TypeOf(LocationFilter{})
 	modelType := reflect.TypeOf(Location{})
 	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
-	return &locationHandler{load: load, SearchHandler: searchHandler, Error: logError, Log: writeLog}
+	return &locationHandler{service: service, SearchHandler: searchHandler, Error: logError, Log: writeLog}
 }
 
 type locationHandler struct {
-	load func(ctx context.Context, id interface{}, result interface{}) (bool, error)
+	service LocationService
 	*search.SearchHandler
 	Error func(context.Context, string)
 	Log   func(context.Context, string, string, bool, string) error
@@ -30,12 +30,7 @@ type locationHandler struct {
 func (h *locationHandler) Load(w http.ResponseWriter, r *http.Request) {
 	id := sv.GetRequiredParam(w, r)
 	if len(id) > 0 {
-		var location Location
-		ok, err := h.load(r.Context(), id, &location)
-		if err == nil && !ok {
-			sv.JSON(w, http.StatusNotFound, nil)
-		} else {
-			sv.RespondModel(w, r, location, err, h.Error, nil)
-		}
+		result, err := h.service.Load(r.Context(), id)
+		sv.RespondModel(w, r, result, err, h.Error, nil)
 	}
 }
