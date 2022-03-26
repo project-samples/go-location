@@ -1,9 +1,8 @@
 package location
 
 import (
-"context"
-
-sv "github.com/core-go/service"
+	"context"
+	sv "github.com/core-go/service"
 )
 
 type LocationService interface {
@@ -27,4 +26,3 @@ func (s *locationService) Load(ctx context.Context, id string) (*Location, error
 		return &location, err
 	}
 }
-
