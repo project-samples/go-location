@@ -39,8 +39,9 @@ func NewApp(ctx context.Context, root Root) (*ApplicationContext, error) {
 	locationMapper := geo.NewMapper(locationType)
 	locationQuery := query.UseQuery(locationType)
 	locationSearchBuilder := mongo.NewSearchBuilder(db, "location", locationQuery, search.GetSort, locationMapper.DbToModel)
-	getLocation := mongo.UseGet(db, "location", locationType, locationMapper.DbToModel)
-	locationHandler := location.NewLocationHandler(locationSearchBuilder.Search, getLocation, logError, nil)
+	locationRepository := mongo.NewViewRepository(db, "location", locationType, locationMapper.DbToModel)
+	locationService := location.NewLocationService(locationRepository)
+	locationHandler := location.NewLocationHandler(locationSearchBuilder.Search, locationService, logError, nil)
 
 	eventType := reflect.TypeOf(event.Event{})
 	eventMapper := geo.NewMapper(eventType)
@@ -61,9 +62,8 @@ func NewApp(ctx context.Context, root Root) (*ApplicationContext, error) {
 	tourMapper := geo.NewMapper(tourType)
 	tourQuery := query.UseQuery(tourType)
 	tourSearchBuilder := mongo.NewSearchBuilder(db, "tour", tourQuery, search.GetSort, tourMapper.DbToModel)
-	tourRepository := mongo.NewViewRepository(db, "tour", tourType, tourMapper.DbToModel)
-	tourService := tour.NewTourService(tourRepository)
-	tourHandler := tour.NewTourHandler(tourSearchBuilder.Search, tourService, logError, nil)
+	getTour := mongo.UseGet(db, "tour", tourType, tourMapper.DbToModel)
+	tourHandler := tour.NewTourHandler(tourSearchBuilder.Search, getTour, logError, nil)
 
 	return &ApplicationContext{
 		HealthHandler:   healthHandler,
