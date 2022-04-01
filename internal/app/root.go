@@ -12,4 +12,5 @@ type Root struct {
 	Mongo      mongo.MongoConfig  `mapstructure:"mongo"`
 	Log        log.Config         `mapstructure:"log"`
 	MiddleWare mid.LogConfig      `mapstructure:"middleware"`
+	Allow      AllowConf          `mapstructure:"allow"`
 }

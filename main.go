@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"go-service/internal/app"
 	"net/http"
 
 	"github.com/core-go/config"
@@ -10,8 +11,7 @@ import (
 	mid "github.com/core-go/log/middleware"
 	sv "github.com/core-go/service"
 	"github.com/gorilla/mux"
-
-	"go-service/internal/app"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -35,5 +35,16 @@ func main() {
 		panic(er2)
 	}
 	fmt.Println(sv.ServerInfo(conf.Server))
-	http.ListenAndServe(sv.Addr(conf.Server.Port), r)
+	// http.ListenAndServe(sv.Addr(conf.Server.Port), r)
+	c := cors.New(cors.Options{
+		AllowedHeaders:   conf.Allow.AllowHeaders,
+		AllowedOrigins:   conf.Allow.AllowOrigins,
+		AllowedMethods:   conf.Allow.AllowMethods,
+		AllowCredentials: conf.Allow.Credentials})
+	handler := c.Handler(r)
+	if conf.Allow.Https {
+		http.ListenAndServeTLS(conf.Allow.SecurePort, conf.Allow.Cert, conf.Allow.Key, handler)
+	} else {
+		http.ListenAndServe(sv.Addr(conf.Server.Port), handler)
+	}
 }

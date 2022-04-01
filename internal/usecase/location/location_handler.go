@@ -2,10 +2,11 @@ package location
 
 import (
 	"context"
-	"github.com/core-go/search"
-	sv "github.com/core-go/service"
 	"net/http"
 	"reflect"
+
+	"github.com/core-go/search"
+	sv "github.com/core-go/service"
 )
 
 type LocationHandler interface {
@@ -31,6 +32,7 @@ func (h *locationHandler) Load(w http.ResponseWriter, r *http.Request) {
 	id := sv.GetRequiredParam(w, r)
 	if len(id) > 0 {
 		result, err := h.service.Load(r.Context(), id)
+
 		sv.RespondModel(w, r, result, err, h.Error, nil)
 	}
 }

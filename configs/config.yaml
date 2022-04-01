@@ -1,7 +1,6 @@
 server:
   name: go-backoffice
-  port: 8080
-
+  port: 8081
 mongo:
   uri: mongodb+srv://dbUser:Demoaccount1@projectdemo.g0lah.mongodb.net
   database: location
@@ -18,3 +17,14 @@ middleware:
   request: request
   response: response
   size: size
+
+allow:
+  allow_origins: ["http://localhost:3001", "http://localhost:3000", "http://localhost:8081"]
+  allow_methods: ["GET", "HEAD", "POST", "PUT", "OPTIONS"]
+  allow_headers: ["*"]
+  credentials: true
+  secure_port: ":443"
+  port: "8081"
+  https: true
+  cert: "certificate/cert.pem"
+  key: "certificate/key.pem"
