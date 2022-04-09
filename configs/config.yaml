@@ -1,6 +1,15 @@
 server:
   name: go-backoffice
-  port: 8081
+  port: 8080
+  secure: false
+  key: 'configs/key.pem'
+  cert: 'configs/cert.pem'
+allow:
+  origins: '*'
+  credentials: true
+  methods: GET,PUT,POST,DELETE,OPTIONS,PATCH
+  headers: Access-Control-Allow-Headers,Authorization,Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers
+
 mongo:
   uri: mongodb+srv://dbUser:Demoaccount1@projectdemo.g0lah.mongodb.net
   database: location
@@ -17,14 +26,3 @@ middleware:
   request: request
   response: response
   size: size
-
-allow:
-  allow_origins: ["http://localhost:3001", "http://localhost:3000", "http://localhost:8081"]
-  allow_methods: ["GET", "HEAD", "POST", "PUT", "OPTIONS"]
-  allow_headers: ["*"]
-  credentials: true
-  secure_port: ":443"
-  port: "8081"
-  https: true
-  cert: "certificate/cert.pem"
-  key: "certificate/key.pem"

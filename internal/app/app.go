@@ -28,8 +28,8 @@ type ApplicationContext struct {
 	TourHandler         tour.TourHandler
 }
 
-func NewApp(ctx context.Context, root Root) (*ApplicationContext, error) {
-	db, err := mongo.Setup(ctx, root.Mongo)
+func NewApp(ctx context.Context, conf Config) (*ApplicationContext, error) {
+	db, err := mongo.Setup(ctx, conf.Mongo)
 	if err != nil {
 		return nil, err
 	}

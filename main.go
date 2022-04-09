@@ -3,25 +3,24 @@ package main
 import (
 	"context"
 	"fmt"
-	"go-service/internal/app"
-	"net/http"
-
 	"github.com/core-go/config"
 	"github.com/core-go/log"
 	mid "github.com/core-go/log/middleware"
 	sv "github.com/core-go/service"
+	"github.com/core-go/service/cors"
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
+
+	"go-service/internal/app"
 )
 
 func main() {
-	var conf app.Root
-	er1 := config.Load(&conf, "configs/config")
-	if er1 != nil {
-		panic(er1)
+	var conf app.Config
+	err := config.Load(&conf, "configs/config")
+	if err != nil {
+		panic(err)
 	}
-
 	r := mux.NewRouter()
+
 	log.Initialize(conf.Log)
 	r.Use(mid.BuildContext)
 	logger := mid.NewLogger()
@@ -30,21 +29,12 @@ func main() {
 	}
 	r.Use(mid.Recover(log.ErrorMsg))
 
-	er2 := app.Route(r, context.Background(), conf)
-	if er2 != nil {
-		panic(er2)
+	err = app.Route(r, context.Background(), conf)
+	if err != nil {
+		panic(err)
 	}
 	fmt.Println(sv.ServerInfo(conf.Server))
-	// http.ListenAndServe(sv.Addr(conf.Server.Port), r)
-	c := cors.New(cors.Options{
-		AllowedHeaders:   conf.Allow.AllowHeaders,
-		AllowedOrigins:   conf.Allow.AllowOrigins,
-		AllowedMethods:   conf.Allow.AllowMethods,
-		AllowCredentials: conf.Allow.Credentials})
+	c := cors.New(conf.Allow)
 	handler := c.Handler(r)
-	if conf.Allow.Https {
-		http.ListenAndServeTLS(conf.Allow.SecurePort, conf.Allow.Cert, conf.Allow.Key, handler)
-	} else {
-		http.ListenAndServe(sv.Addr(conf.Server.Port), handler)
-	}
+	sv.StartServer(conf.Server, handler)
 }
