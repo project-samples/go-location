@@ -1,8 +1,6 @@
 package rate
 
-import (
-	"time"
-)
+import "time"
 
 type Rate struct {
 	Id         string     `mapstructure:"id" json:"id,omitempty" gorm:"column:id;primary_key" bson:"_id,omitempty" dynamodbav:"id,omitempty" firestore:"-"`

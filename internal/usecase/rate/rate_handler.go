@@ -18,17 +18,17 @@ func NewRateHandler(find func(context.Context, interface{}, interface{}, int64, 
 	searchModelType := reflect.TypeOf(RateFilter{})
 	modelType := reflect.TypeOf(Rate{})
 	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
-	return &eventHandler{load: load, SearchHandler: searchHandler, Error: logError, Log: writeLog}
+	return &rateHandler{load: load, SearchHandler: searchHandler, Error: logError, Log: writeLog}
 }
 
-type eventHandler struct {
+type rateHandler struct {
 	load func(ctx context.Context, id interface{}, result interface{}) (bool, error)
 	*search.SearchHandler
 	Error func(context.Context, string)
 	Log   func(context.Context, string, string, bool, string) error
 }
 
-func (h *eventHandler) Load(w http.ResponseWriter, r *http.Request) {
+func (h *rateHandler) Load(w http.ResponseWriter, r *http.Request) {
 	id := sv.GetRequiredParam(w, r)
 	if len(id) > 0 {
 		var rate Rate

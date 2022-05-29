@@ -2,7 +2,6 @@ package location
 
 import (
 	"context"
-
 	sv "github.com/core-go/service"
 )
 
@@ -21,12 +20,11 @@ type locationService struct {
 
 func (s *locationService) Load(ctx context.Context, id string) (*Location, error) {
 	var location Location
-	var locationInfo LocationInfo
 	ok, err := s.repository.LoadAndDecode(ctx, id, &location)
-
 	if !ok {
 		return nil, err
 	}
+	var locationInfo LocationInfo
 	ok, err = s.repositoryInfo.LoadAndDecode(ctx, id, &locationInfo)
 	if !ok {
 		return &location, err

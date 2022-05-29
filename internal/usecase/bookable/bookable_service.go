@@ -2,7 +2,6 @@ package bookable
 
 import (
 	"context"
-
 	sv "github.com/core-go/service"
 )
 

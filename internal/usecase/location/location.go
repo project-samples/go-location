@@ -1,9 +1,8 @@
 package location
 
 import (
-	"time"
-
 	"github.com/core-go/mongo/geo"
+	"time"
 )
 
 type Location struct {

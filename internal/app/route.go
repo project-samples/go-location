@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-
 	. "github.com/core-go/service"
 	"github.com/gorilla/mux"
 )
@@ -12,39 +11,29 @@ func Route(r *mux.Router, ctx context.Context, conf Config) error {
 	if err != nil {
 		return err
 	}
+	r.HandleFunc("/health", app.Health.Check).Methods(GET)
 
-	r.HandleFunc("/health", app.HealthHandler.Check).Methods(GET)
+	location := "/locations"
+	r.HandleFunc(location, app.Location.Search).Methods(GET)
+	r.HandleFunc(location+"/search", app.Location.Search).Methods(GET, POST)
+	r.HandleFunc(location+"/{id}", app.Location.Load).Methods(GET)
 
-	locationPath := "/locations"
-	location := app.LocationHandler
-	// r.HandleFunc(locationPath, location.GetAll).Methods(GET)
-	r.HandleFunc(locationPath+"/search", location.Search).Methods(GET, POST)
-	r.HandleFunc(locationPath+"/{id}", location.Load).Methods(GET)
+	locationRate := "/locationsrate"
+	r.HandleFunc(locationRate+"/search", app.LocationRate.Search).Methods(GET, POST)
+	r.HandleFunc(locationRate+"/{id}", app.LocationRate.Load).Methods(GET)
 
-	locationRatePath := "/locationsrate"
-	locationRate := app.LocationRateHandler
-	// r.HandleFunc(locationPath, location.GetAll).Methods(GET)
-	r.HandleFunc(locationRatePath+"/search", locationRate.Search).Methods(GET, POST)
-	r.HandleFunc(locationRatePath+"/{id}", locationRate.Load).Methods(GET)
+	event := "/events"
+	r.HandleFunc(event+"/search", app.Event.Search).Methods(GET, POST)
+	r.HandleFunc(event+"/{id}", app.Event.Load).Methods(GET)
 
-	eventPath := "/events"
-	event := app.EventHandler
-	// r.HandleFunc(eventPath, event.GetAll).Methods(GET)
-	r.HandleFunc(eventPath+"/search", event.Search).Methods(GET, POST)
-	r.HandleFunc(eventPath+"/{id}", event.Load).Methods(GET)
+	bookable := "/bookables"
+	r.HandleFunc(bookable+"/search", app.Bookable.Search).Methods(GET, POST)
+	r.HandleFunc(bookable+"/{id}", app.Bookable.Load).Methods(GET)
 
-	bookablePath := "/bookables"
-	bookable := app.BookableHandler
-	// r.HandleFunc(bookablePath, bookable.GetAll).Methods(GET)
-	r.HandleFunc(bookablePath+"/search", bookable.Search).Methods(GET, POST)
-	r.HandleFunc(bookablePath+"/{id}", bookable.Load).Methods(GET)
-
-	tourPath := "/tours"
-	tour := app.TourHandler
-	// r.HandleFunc(tourPath, tour.GetAll).Methods(GET)
-	r.HandleFunc(tourPath+"", tour.Search).Methods(GET, POST)
-	r.HandleFunc(tourPath+"/search", tour.Search).Methods(GET, POST)
-	r.HandleFunc(tourPath+"/{id}", tour.Load).Methods(GET)
+	tour := "/tours"
+	r.HandleFunc(tour+"", app.Tour.Search).Methods(GET, POST)
+	r.HandleFunc(tour+"/search", app.Tour.Search).Methods(GET, POST)
+	r.HandleFunc(tour+"/{id}", app.Tour.Load).Methods(GET)
 
 	return nil
 }

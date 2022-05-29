@@ -32,7 +32,6 @@ func (h *locationHandler) Load(w http.ResponseWriter, r *http.Request) {
 	id := sv.GetRequiredParam(w, r)
 	if len(id) > 0 {
 		result, err := h.service.Load(r.Context(), id)
-
 		sv.RespondModel(w, r, result, err, h.Error, nil)
 	}
 }

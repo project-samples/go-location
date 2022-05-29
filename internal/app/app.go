@@ -20,12 +20,12 @@ import (
 )
 
 type ApplicationContext struct {
-	HealthHandler       *health.Handler
-	LocationHandler     location.LocationHandler
-	LocationRateHandler rate.RateHandler
-	EventHandler        event.EventHandler
-	BookableHandler     bookable.BookableHandler
-	TourHandler         tour.TourHandler
+	Health       *health.Handler
+	Location     location.LocationHandler
+	LocationRate rate.RateHandler
+	Event        event.EventHandler
+	Bookable     bookable.BookableHandler
+	Tour         tour.TourHandler
 }
 
 func NewApp(ctx context.Context, conf Config) (*ApplicationContext, error) {
@@ -42,8 +42,6 @@ func NewApp(ctx context.Context, conf Config) (*ApplicationContext, error) {
 	locationInfoType := reflect.TypeOf(location.LocationInfo{})
 
 	locationMapper := geo.NewMapper(locationType)
-	// locationInfoMapper := geo.NewMapper(locationInfoType)
-
 	locationQuery := query.UseQuery(locationType)
 	locationSearchBuilder := mongo.NewSearchBuilder(db, "location", locationQuery, search.GetSort, locationMapper.DbToModel)
 	locationRepository := mongo.NewViewRepository(db, "location", locationType, locationMapper.DbToModel)
@@ -80,12 +78,12 @@ func NewApp(ctx context.Context, conf Config) (*ApplicationContext, error) {
 	tourHandler := tour.NewTourHandler(tourSearchBuilder.Search, getTour, logError, nil)
 
 	return &ApplicationContext{
-		HealthHandler:       healthHandler,
-		LocationHandler:     locationHandler,
-		EventHandler:        eventHandler,
-		BookableHandler:     bookableHandler,
-		TourHandler:         tourHandler,
-		LocationRateHandler: locationRateHandler,
+		Health:       healthHandler,
+		Location:     locationHandler,
+		Event:        eventHandler,
+		Bookable:     bookableHandler,
+		Tour:         tourHandler,
+		LocationRate: locationRateHandler,
 	}, nil
 }
 

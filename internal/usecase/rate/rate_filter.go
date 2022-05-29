@@ -1,9 +1,8 @@
 package rate
 
 import (
-	"time"
-
 	"github.com/core-go/search"
+	"time"
 )
 
 type RateFilter struct {

@@ -1,8 +1,6 @@
 package tour
 
-import (
-	"time"
-)
+import "time"
 
 type Tour struct {
 	Id          string     `mapstructure:"id" json:"id,omitempty" gorm:"column:id;primary_key" bson:"_id,omitempty" dynamodbav:"id,omitempty" firestore:"-"`
