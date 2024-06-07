@@ -9,7 +9,7 @@ import (
 	"github.com/core-go/mongo"
 	"github.com/core-go/mongo/geo"
 	"github.com/core-go/search"
-	query "github.com/core-go/search/mongo"
+	"github.com/core-go/search/mongo/query"
 	"github.com/teris-io/shortid"
 
 	"go-service/internal/usecase/bookable"
@@ -33,9 +33,9 @@ func NewApp(ctx context.Context, conf Config) (*ApplicationContext, error) {
 	if err != nil {
 		return nil, err
 	}
-	logError := log.ErrorMsg
+	logError := log.LogError
 
-	mongoChecker := mongo.NewHealthChecker(db)
+	mongoChecker := mongo.NewHealthChecker(db.Client())
 	healthHandler := health.NewHandler(mongoChecker)
 
 	locationType := reflect.TypeOf(location.Location{})

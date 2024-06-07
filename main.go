@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/core-go/config"
+	sv "github.com/core-go/core"
+	"github.com/core-go/core/cors"
 	"github.com/core-go/log"
 	mid "github.com/core-go/log/middleware"
-	sv "github.com/core-go/service"
-	"github.com/core-go/service/cors"
 	"github.com/gorilla/mux"
 
 	"go-service/internal/app"

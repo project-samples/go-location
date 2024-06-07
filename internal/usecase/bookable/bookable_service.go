@@ -2,7 +2,7 @@ package bookable
 
 import (
 	"context"
-	sv "github.com/core-go/service"
+	sv "github.com/core-go/core"
 )
 
 type BookableService interface {
@@ -19,7 +19,7 @@ type bookableService struct {
 
 func (s *bookableService) Load(ctx context.Context, id string) (*Bookable, error) {
 	var bookable Bookable
-	ok, err := s.repository.LoadAndDecode(ctx, id, &bookable)
+	ok, err := s.repository.Get(ctx, id, &bookable)
 	if !ok {
 		return nil, err
 	} else {

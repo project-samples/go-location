@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	. "github.com/core-go/service"
+	. "github.com/core-go/core/constants"
 	"github.com/gorilla/mux"
 )
 
