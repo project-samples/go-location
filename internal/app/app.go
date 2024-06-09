@@ -46,11 +46,12 @@ func NewApp(ctx context.Context, conf Config) (*ApplicationContext, error) {
 	locationSearchBuilder := mongo.NewSearchBuilder(db, "location", locationQuery, search.GetSort, locationMapper.DbToModel)
 	locationRepository := mongo.NewViewRepository(db, "location", locationType, locationMapper.DbToModel)
 	locationInfoRepository := mongo.NewViewRepository(db, "locationInfo", locationInfoType)
-	locationService := location.NewLocationService(locationRepository, locationInfoRepository)
+	locationService := location.NewLocationService(db, locationMapper.DbToModel, locationRepository, locationInfoRepository)
 	locationHandler := location.NewLocationHandler(locationSearchBuilder.Search, locationService, logError, nil)
 
 	locationRateType := reflect.TypeOf(rate.Rate{})
 	locationRateQuery := query.UseQuery(locationRateType)
+
 	locationRateSearchBuilder := mongo.NewSearchBuilder(db, "locationRate", locationRateQuery, search.GetSort)
 	getLocationRate := mongo.UseGet(db, "locationRate", locationRateType)
 	locationRateHandler := rate.NewRateHandler(locationRateSearchBuilder.Search, getLocationRate, logError, nil)
