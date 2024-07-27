@@ -4,6 +4,9 @@ import (
 	"context"
 	"reflect"
 
+	m "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"github.com/core-go/health"
 	"github.com/core-go/log"
 	"github.com/core-go/mongo"
@@ -12,11 +15,11 @@ import (
 	"github.com/core-go/search/mongo/query"
 	"github.com/teris-io/shortid"
 
-	"go-service/internal/usecase/bookable"
-	"go-service/internal/usecase/event"
-	"go-service/internal/usecase/location"
-	"go-service/internal/usecase/rate"
-	"go-service/internal/usecase/tour"
+	"go-service/internal/bookable"
+	"go-service/internal/event"
+	"go-service/internal/location"
+	"go-service/internal/rate"
+	"go-service/internal/tour"
 )
 
 type ApplicationContext struct {
@@ -28,11 +31,12 @@ type ApplicationContext struct {
 	Tour         tour.TourHandler
 }
 
-func NewApp(ctx context.Context, conf Config) (*ApplicationContext, error) {
-	db, err := mongo.Setup(ctx, conf.Mongo)
+func NewApp(ctx context.Context, cfg Config) (*ApplicationContext, error) {
+	client, err := m.Connect(ctx, options.Client().ApplyURI(cfg.Mongo.Uri))
 	if err != nil {
 		return nil, err
 	}
+	db := client.Database(cfg.Mongo.Database)
 	logError := log.LogError
 
 	mongoChecker := mongo.NewHealthChecker(db.Client())
