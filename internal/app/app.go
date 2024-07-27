@@ -2,17 +2,12 @@ package app
 
 import (
 	"context"
-	"reflect"
-
 	m "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/core-go/health"
 	"github.com/core-go/log"
 	"github.com/core-go/mongo"
-	"github.com/core-go/mongo/geo"
-	"github.com/core-go/search"
-	"github.com/core-go/search/mongo/query"
 	"github.com/teris-io/shortid"
 
 	"go-service/internal/bookable"
@@ -42,45 +37,11 @@ func NewApp(ctx context.Context, cfg Config) (*ApplicationContext, error) {
 	mongoChecker := mongo.NewHealthChecker(db.Client())
 	healthHandler := health.NewHandler(mongoChecker)
 
-	locationType := reflect.TypeOf(location.Location{})
-	locationInfoType := reflect.TypeOf(location.LocationInfo{})
-
-	locationMapper := geo.NewMapper(locationType)
-	locationQuery := query.UseQuery(locationType)
-	locationSearchBuilder := mongo.NewSearchBuilder(db, "location", locationQuery, search.GetSort, locationMapper.DbToModel)
-	locationRepository := mongo.NewViewRepository(db, "location", locationType, locationMapper.DbToModel)
-	locationInfoRepository := mongo.NewViewRepository(db, "locationInfo", locationInfoType)
-	locationService := location.NewLocationService(db, locationMapper.DbToModel, locationRepository, locationInfoRepository)
-	locationHandler := location.NewLocationHandler(locationSearchBuilder.Search, locationService, logError, nil)
-
-	locationRateType := reflect.TypeOf(rate.Rate{})
-	locationRateQuery := query.UseQuery(locationRateType)
-
-	locationRateSearchBuilder := mongo.NewSearchBuilder(db, "locationRate", locationRateQuery, search.GetSort)
-	getLocationRate := mongo.UseGet(db, "locationRate", locationRateType)
-	locationRateHandler := rate.NewRateHandler(locationRateSearchBuilder.Search, getLocationRate, logError, nil)
-
-	eventType := reflect.TypeOf(event.Event{})
-	eventMapper := geo.NewMapper(eventType)
-	eventQuery := query.UseQuery(eventType)
-	eventSearchBuilder := mongo.NewSearchBuilder(db, "event", eventQuery, search.GetSort, eventMapper.DbToModel)
-	getEvent := mongo.UseGet(db, "event", eventType, eventMapper.DbToModel)
-	eventHandler := event.NewEventHandler(eventSearchBuilder.Search, getEvent, logError, nil)
-
-	bookableType := reflect.TypeOf(bookable.Bookable{})
-	bookableMapper := geo.NewMapper(bookableType)
-	bookableQuery := query.UseQuery(bookableType)
-	bookableSearchBuilder := mongo.NewSearchBuilder(db, "bookable", bookableQuery, search.GetSort, bookableMapper.DbToModel)
-	bookableRepository := mongo.NewViewRepository(db, "bookable", bookableType, bookableMapper.DbToModel)
-	bookableService := bookable.NewBookableService(bookableRepository)
-	bookableHandler := bookable.NewBookableHandler(bookableSearchBuilder.Search, bookableService, logError, nil)
-
-	tourType := reflect.TypeOf(tour.Tour{})
-	tourMapper := geo.NewMapper(tourType)
-	tourQuery := query.UseQuery(tourType)
-	tourSearchBuilder := mongo.NewSearchBuilder(db, "tour", tourQuery, search.GetSort, tourMapper.DbToModel)
-	getTour := mongo.UseGet(db, "tour", tourType, tourMapper.DbToModel)
-	tourHandler := tour.NewTourHandler(tourSearchBuilder.Search, getTour, logError, nil)
+	locationHandler := location.NewLocationTransport(db, logError, nil)
+	locationRateHandler := rate.NewRateTransport(db, logError, nil)
+	eventHandler := event.NewEventTransport(db, logError, nil)
+	bookableHandler := bookable.NewBookableTransport(db, logError, nil)
+	tourHandler := tour.NewTourTransport(db, logError, nil)
 
 	return &ApplicationContext{
 		Health:       healthHandler,
