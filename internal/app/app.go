@@ -6,8 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/core-go/health"
+	hm "github.com/core-go/health/mongo"
 	"github.com/core-go/log"
-	"github.com/core-go/mongo"
 	"github.com/teris-io/shortid"
 
 	"go-service/internal/bookable"
@@ -34,7 +34,7 @@ func NewApp(ctx context.Context, cfg Config) (*ApplicationContext, error) {
 	db := client.Database(cfg.Mongo.Database)
 	logError := log.LogError
 
-	mongoChecker := mongo.NewHealthChecker(db.Client())
+	mongoChecker := hm.NewHealthChecker(client)
 	healthHandler := health.NewHandler(mongoChecker)
 
 	locationHandler := location.NewLocationTransport(db, logError, nil)
