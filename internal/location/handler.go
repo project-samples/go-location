@@ -1,41 +1,51 @@
 package location
 
 import (
-	"context"
 	"net/http"
 	"reflect"
 
-	sv "github.com/core-go/core"
+	"github.com/core-go/core"
 	"github.com/core-go/search"
 )
 
-type LocationHandler interface {
-	Search(w http.ResponseWriter, r *http.Request)
-	Load(w http.ResponseWriter, r *http.Request)
+func NewLocationHandler(query LocationQuery, logError core.Log) *LocationHandler {
+	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(LocationFilter{}))
+	return &LocationHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
-func NewLocationHandler(find func(context.Context, interface{}, interface{}, int64, int64) (int64, error), service LocationService, logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) LocationHandler {
-	searchModelType := reflect.TypeOf(LocationFilter{})
-	modelType := reflect.TypeOf(Location{})
-	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
-	return &locationHandler{service: service, SearchHandler: searchHandler}
+type LocationHandler struct {
+	query       LocationQuery
+	logError    core.Log
+	paramIndex  map[string]int
+	filterIndex int
 }
 
-type locationHandler struct {
-	service LocationService
-	*search.SearchHandler
-	Error func(context.Context, string)
-	Log   func(context.Context, string, string, bool, string) error
-}
-
-func (h *locationHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := sv.GetRequiredParam(w, r)
+func (h *LocationHandler) Load(w http.ResponseWriter, r *http.Request) {
+	id := core.GetRequiredParam(w, r)
 	if len(id) > 0 {
-		res, err := h.service.Load(r.Context(), id)
+		location, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		sv.JSON(w, sv.IsFound(res), res)
+		if location == nil {
+			core.JSON(w, http.StatusNotFound, location)
+		} else {
+			core.JSON(w, http.StatusOK, location)
+		}
 	}
+}
+
+func (h *LocationHandler) Search(w http.ResponseWriter, r *http.Request) {
+	filter := LocationFilter{Filter: &search.Filter{}}
+	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+
+	offset := search.GetOffset(filter.Limit, filter.Page)
+	var users []Location
+	users, total, err := h.query.Search(r.Context(), &filter, filter.Limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	core.JSON(w, http.StatusOK, &search.Result{List: &users, Total: total})
 }

@@ -1,44 +1,51 @@
 package rate
 
 import (
-	"context"
 	"net/http"
 	"reflect"
 
-	sv "github.com/core-go/core"
+	"github.com/core-go/core"
 	"github.com/core-go/search"
 )
 
-type RateHandler interface {
-	Search(w http.ResponseWriter, r *http.Request)
-	Load(w http.ResponseWriter, r *http.Request)
+func NewRateHandler(query RateQuery, logError core.Log) *RateHandler {
+	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(RateFilter{}))
+	return &RateHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
-func NewRateHandler(find func(context.Context, interface{}, interface{}, int64, int64) (int64, error), load func(ctx context.Context, id interface{}, result interface{}) (bool, error), logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) RateHandler {
-	searchModelType := reflect.TypeOf(RateFilter{})
-	modelType := reflect.TypeOf(Rate{})
-	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
-	return &rateHandler{load: load, SearchHandler: searchHandler}
+type RateHandler struct {
+	query       RateQuery
+	logError    core.Log
+	paramIndex  map[string]int
+	filterIndex int
 }
 
-type rateHandler struct {
-	load func(ctx context.Context, id interface{}, result interface{}) (bool, error)
-	*search.SearchHandler
-}
-
-func (h *rateHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := sv.GetRequiredParam(w, r)
+func (h *RateHandler) Load(w http.ResponseWriter, r *http.Request) {
+	id := core.GetRequiredParam(w, r)
 	if len(id) > 0 {
-		var rate Rate
-		ok, err := h.load(r.Context(), id, &rate)
+		rate, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if ok {
-			sv.JSON(w, http.StatusOK, &rate)
+		if rate == nil {
+			core.JSON(w, http.StatusNotFound, rate)
 		} else {
-			sv.JSON(w, http.StatusNotFound, nil)
+			core.JSON(w, http.StatusOK, rate)
 		}
 	}
+}
+
+func (h *RateHandler) Search(w http.ResponseWriter, r *http.Request) {
+	filter := RateFilter{Filter: &search.Filter{}}
+	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+
+	offset := search.GetOffset(filter.Limit, filter.Page)
+	var users []Rate
+	users, total, err := h.query.Search(r.Context(), &filter, filter.Limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	core.JSON(w, http.StatusOK, &search.Result{List: &users, Total: total})
 }

@@ -1,24 +1,26 @@
 package bookable
 
 import (
-	"context"
-	"reflect"
+	"net/http"
 
-	m "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/core-go/mongo"
+	"github.com/core-go/core"
 	"github.com/core-go/mongo/geo"
+	"github.com/core-go/mongo/query"
 	"github.com/core-go/search"
-	"github.com/core-go/search/mongo/query"
+	mq "github.com/core-go/search/mongo/query"
 )
 
-func NewBookableTransport(db *m.Database, logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) BookableHandler {
-	bookableType := reflect.TypeOf(Bookable{})
-	bookableMapper := geo.NewMapper(bookableType)
-	bookableQuery := query.UseQuery(bookableType)
-	bookableSearchBuilder := mongo.NewSearchBuilder(db, "bookable", bookableQuery, search.GetSort, bookableMapper.DbToModel)
-	bookableRepository := mongo.NewViewRepository(db, "bookable", bookableType, bookableMapper.DbToModel)
-	bookableService := NewBookableService(bookableRepository)
-	bookableHandler := NewBookableHandler(bookableSearchBuilder.Search, bookableService, logError, writeLog)
+type BookableTranport interface {
+	Search(w http.ResponseWriter, r *http.Request)
+	Load(w http.ResponseWriter, r *http.Request)
+}
+
+func NewBookableTransport(db *mongo.Database, logError core.Log) BookableTranport {
+	bookableMapper := geo.NewMapper[Bookable]()
+	queryBookable := mq.UseQuery[Bookable, *BookableFilter]()
+	bookableQuery := query.NewQuery[Bookable, string, *BookableFilter](db, "bookable", queryBookable, search.GetSort, bookableMapper.DbToModel)
+	bookableHandler := NewBookableHandler(bookableQuery, logError)
 	return bookableHandler
 }

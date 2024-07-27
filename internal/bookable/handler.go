@@ -1,38 +1,51 @@
 package bookable
 
 import (
-	"context"
-	sv "github.com/core-go/core"
-	"github.com/core-go/search"
 	"net/http"
 	"reflect"
+
+	"github.com/core-go/core"
+	"github.com/core-go/search"
 )
 
-type BookableHandler interface {
-	Search(w http.ResponseWriter, r *http.Request)
-	Load(w http.ResponseWriter, r *http.Request)
+func NewBookableHandler(query BookableQuery, logError core.Log) *BookableHandler {
+	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(BookableFilter{}))
+	return &BookableHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
-func NewBookableHandler(find func(context.Context, interface{}, interface{}, int64, int64) (int64, error), service BookableService, logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) BookableHandler {
-	searchModelType := reflect.TypeOf(BookableFilter{})
-	modelType := reflect.TypeOf(Bookable{})
-	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
-	return &bookableHandler{service: service, SearchHandler: searchHandler}
+type BookableHandler struct {
+	query       BookableQuery
+	logError    core.Log
+	paramIndex  map[string]int
+	filterIndex int
 }
 
-type bookableHandler struct {
-	service BookableService
-	*search.SearchHandler
-}
-
-func (h *bookableHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := sv.GetRequiredParam(w, r)
+func (h *BookableHandler) Load(w http.ResponseWriter, r *http.Request) {
+	id := core.GetRequiredParam(w, r)
 	if len(id) > 0 {
-		res, err := h.service.Load(r.Context(), id)
+		bookable, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		sv.JSON(w, sv.IsFound(res), res)
+		if bookable == nil {
+			core.JSON(w, http.StatusNotFound, bookable)
+		} else {
+			core.JSON(w, http.StatusOK, bookable)
+		}
 	}
+}
+
+func (h *BookableHandler) Search(w http.ResponseWriter, r *http.Request) {
+	filter := BookableFilter{Filter: &search.Filter{}}
+	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+
+	offset := search.GetOffset(filter.Limit, filter.Page)
+	var users []Bookable
+	users, total, err := h.query.Search(r.Context(), &filter, filter.Limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	core.JSON(w, http.StatusOK, &search.Result{List: &users, Total: total})
 }

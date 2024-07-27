@@ -1,23 +1,24 @@
 package rate
 
 import (
-	"context"
-	"reflect"
+	"net/http"
 
-	m "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/core-go/mongo"
+	"github.com/core-go/core"
+	"github.com/core-go/mongo/query"
 	"github.com/core-go/search"
-	"github.com/core-go/search/mongo/query"
+	mq "github.com/core-go/search/mongo/query"
 )
 
-func NewRateTransport(db *m.Database, logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) RateHandler {
-	locationRateType := reflect.TypeOf(Rate{})
-	locationRateQuery := query.UseQuery(locationRateType)
+type RateTranport interface {
+	Search(w http.ResponseWriter, r *http.Request)
+	Load(w http.ResponseWriter, r *http.Request)
+}
 
-	locationRateSearchBuilder := mongo.NewSearchBuilder(db, "locationRate", locationRateQuery, search.GetSort)
-	getLocationRate := mongo.UseGet(db, "locationRate", locationRateType)
-	locationRateHandler := NewRateHandler(locationRateSearchBuilder.Search, getLocationRate, logError, writeLog)
-
-	return locationRateHandler
+func NewRateTransport(db *mongo.Database, logError core.Log) RateTranport {
+	queryRate := mq.UseQuery[Rate, *RateFilter]()
+	rateQuery := query.NewQuery[Rate, string, *RateFilter](db, "rate", queryRate, search.GetSort)
+	rateHandler := NewRateHandler(rateQuery, logError)
+	return rateHandler
 }

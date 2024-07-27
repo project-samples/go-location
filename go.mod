@@ -4,11 +4,11 @@ go 1.18
 
 require (
 	github.com/core-go/config v1.0.1
-	github.com/core-go/core v0.6.4
+	github.com/core-go/core v0.6.10
 	github.com/core-go/health v1.2.0
 	github.com/core-go/log v1.0.5
-	github.com/core-go/mongo v0.5.3
-	github.com/core-go/search v1.0.2
+	github.com/core-go/mongo v1.1.1
+	github.com/core-go/search v1.0.9
 	github.com/gorilla/mux v1.8.1
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 	go.mongodb.org/mongo-driver v1.16.0

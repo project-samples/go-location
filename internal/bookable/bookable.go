@@ -15,7 +15,7 @@ type Bookable struct {
 	CustomURL   string     `mapstructure:"custom_url" json:"customURL,omitempty" gorm:"column:customurl" bson:"customURL,omitempty" dynamodbav:"customURL,omitempty" firestore:"customURL,omitempty"`
 	Latitude    *float64   `mapstructure:"latitude" json:"latitude,omitempty" gorm:"column:latitude" bson:"-" dynamodbav:"latitude,omitempty" firestore:"latitude,omitempty"`
 	Longitude   *float64   `mapstructure:"longitude" json:"longitude,omitempty" gorm:"column:longitude" bson:"-" dynamodbav:"longitude,omitempty" firestore:"longitude,omitempty"`
-	Geo         *geo.JSON  `mapstructure:"geo" json:"-" bson:"geo,omitempty" gorm:"-" dynamodbav:"-" firestore:"-"`
+	Geo         *geo.Point `mapstructure:"geo" json:"-" bson:"geo,omitempty" gorm:"-" dynamodbav:"-" firestore:"-"`
 	LocationId  string     `mapstructure:"locationId" json:"locationId,omitempty" gorm:"column:locationid" bson:"locationId,omitempty" dynamodbav:"locationId,omitempty" firestore:"locationId,omitempty" validate:"required,max=255"`
 	CreatedBy   string     `mapstructure:"created_by" json:"createdBy,omitempty" gorm:"column:createdby" bson:"createdBy,omitempty" dynamodbav:"createdBy,omitempty" firestore:"createdBy,omitempty"`
 	CreatedAt   *time.Time `mapstructure:"created_at" json:"createdAt,omitempty" gorm:"column:createdat" bson:"createdAt,omitempty" dynamodbav:"createdAt,omitempty" firestore:"-"`

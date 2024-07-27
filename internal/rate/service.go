@@ -1,28 +1,8 @@
 package rate
 
-import (
-	"context"
-	sv "github.com/core-go/core"
-)
+import "context"
 
-type RateService interface {
+type RateQuery interface {
 	Load(ctx context.Context, id string) (*Rate, error)
-}
-
-func NewLocationRateService(repository sv.ViewRepository) RateService {
-	return &rateService{repository: repository}
-}
-
-type rateService struct {
-	repository sv.ViewRepository
-}
-
-func (s *rateService) Load(ctx context.Context, id string) (*Rate, error) {
-	var locationRate Rate
-	ok, err := s.repository.Get(ctx, id, &locationRate)
-	if !ok {
-		return nil, err
-	} else {
-		return &locationRate, err
-	}
+	Search(ctx context.Context, filter *RateFilter, limit int64, offset int64) ([]Rate, int64, error)
 }

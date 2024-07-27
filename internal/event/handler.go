@@ -1,43 +1,51 @@
 package event
 
 import (
-	"context"
-	sv "github.com/core-go/core"
-	"github.com/core-go/search"
 	"net/http"
 	"reflect"
+
+	"github.com/core-go/core"
+	"github.com/core-go/search"
 )
 
-type EventHandler interface {
-	Search(w http.ResponseWriter, r *http.Request)
-	Load(w http.ResponseWriter, r *http.Request)
+func NewEventHandler(query EventQuery, logError core.Log) *EventHandler {
+	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(EventFilter{}))
+	return &EventHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
-func NewEventHandler(find func(context.Context, interface{}, interface{}, int64, int64) (int64, error), load func(ctx context.Context, id interface{}, result interface{}) (bool, error), logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) EventHandler {
-	searchModelType := reflect.TypeOf(EventFilter{})
-	modelType := reflect.TypeOf(Event{})
-	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
-	return &eventHandler{load: load, SearchHandler: searchHandler}
+type EventHandler struct {
+	query       EventQuery
+	logError    core.Log
+	paramIndex  map[string]int
+	filterIndex int
 }
 
-type eventHandler struct {
-	load func(ctx context.Context, id interface{}, result interface{}) (bool, error)
-	*search.SearchHandler
-}
-
-func (h *eventHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := sv.GetRequiredParam(w, r)
+func (h *EventHandler) Load(w http.ResponseWriter, r *http.Request) {
+	id := core.GetRequiredParam(w, r)
 	if len(id) > 0 {
-		var event Event
-		ok, err := h.load(r.Context(), id, &event)
+		event, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if ok {
-			sv.JSON(w, http.StatusOK, &event)
+		if event == nil {
+			core.JSON(w, http.StatusNotFound, event)
 		} else {
-			sv.JSON(w, http.StatusNotFound, nil)
+			core.JSON(w, http.StatusOK, event)
 		}
 	}
+}
+
+func (h *EventHandler) Search(w http.ResponseWriter, r *http.Request) {
+	filter := EventFilter{Filter: &search.Filter{}}
+	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+
+	offset := search.GetOffset(filter.Limit, filter.Page)
+	var users []Event
+	users, total, err := h.query.Search(r.Context(), &filter, filter.Limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	core.JSON(w, http.StatusOK, &search.Result{List: &users, Total: total})
 }

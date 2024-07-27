@@ -1,23 +1,24 @@
 package tour
 
 import (
-	"context"
-	"reflect"
+	"net/http"
 
-	m "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/core-go/mongo"
-	"github.com/core-go/mongo/geo"
+	"github.com/core-go/core"
+	"github.com/core-go/mongo/query"
 	"github.com/core-go/search"
-	"github.com/core-go/search/mongo/query"
+	mq "github.com/core-go/search/mongo/query"
 )
 
-func NewTourTransport(db *m.Database, logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) TourHandler {
-	tourType := reflect.TypeOf(Tour{})
-	tourMapper := geo.NewMapper(tourType)
-	tourQuery := query.UseQuery(tourType)
-	tourSearchBuilder := mongo.NewSearchBuilder(db, "tour", tourQuery, search.GetSort, tourMapper.DbToModel)
-	getTour := mongo.UseGet(db, "tour", tourType, tourMapper.DbToModel)
-	tourHandler := NewTourHandler(tourSearchBuilder.Search, getTour, logError, writeLog)
+type TourTranport interface {
+	Search(w http.ResponseWriter, r *http.Request)
+	Load(w http.ResponseWriter, r *http.Request)
+}
+
+func NewTourTransport(db *mongo.Database, logError core.Log) TourTranport {
+	queryTour := mq.UseQuery[Tour, *TourFilter]()
+	tourQuery := query.NewQuery[Tour, string, *TourFilter](db, "tour", queryTour, search.GetSort)
+	tourHandler := NewTourHandler(tourQuery, logError)
 	return tourHandler
 }

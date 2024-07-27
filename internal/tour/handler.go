@@ -1,43 +1,51 @@
 package tour
 
 import (
-	"context"
-	sv "github.com/core-go/core"
-	"github.com/core-go/search"
 	"net/http"
 	"reflect"
+
+	"github.com/core-go/core"
+	"github.com/core-go/search"
 )
 
-type TourHandler interface {
-	Search(w http.ResponseWriter, r *http.Request)
-	Load(w http.ResponseWriter, r *http.Request)
+func NewTourHandler(query TourQuery, logError core.Log) *TourHandler {
+	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(TourFilter{}))
+	return &TourHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
-func NewTourHandler(find func(context.Context, interface{}, interface{}, int64, int64) (int64, error), load func(ctx context.Context, id interface{}, result interface{}) (bool, error), logError func(context.Context, string, ...map[string]interface{}), writeLog func(context.Context, string, string, bool, string) error) TourHandler {
-	searchModelType := reflect.TypeOf(TourFilter{})
-	modelType := reflect.TypeOf(Tour{})
-	searchHandler := search.NewSearchHandler(find, modelType, searchModelType, logError, writeLog)
-	return &tourHandler{load: load, SearchHandler: searchHandler}
+type TourHandler struct {
+	query       TourQuery
+	logError    core.Log
+	paramIndex  map[string]int
+	filterIndex int
 }
 
-type tourHandler struct {
-	load func(ctx context.Context, id interface{}, result interface{}) (bool, error)
-	*search.SearchHandler
-}
-
-func (h *tourHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := sv.GetRequiredParam(w, r)
+func (h *TourHandler) Load(w http.ResponseWriter, r *http.Request) {
+	id := core.GetRequiredParam(w, r)
 	if len(id) > 0 {
-		var res Tour
-		ok, err := h.load(r.Context(), id, &res)
+		tour, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if ok {
-			sv.JSON(w, http.StatusOK, &res)
+		if tour == nil {
+			core.JSON(w, http.StatusNotFound, tour)
 		} else {
-			sv.JSON(w, http.StatusNotFound, nil)
+			core.JSON(w, http.StatusOK, tour)
 		}
 	}
+}
+
+func (h *TourHandler) Search(w http.ResponseWriter, r *http.Request) {
+	filter := TourFilter{Filter: &search.Filter{}}
+	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+
+	offset := search.GetOffset(filter.Limit, filter.Page)
+	var users []Tour
+	users, total, err := h.query.Search(r.Context(), &filter, filter.Limit, offset)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	core.JSON(w, http.StatusOK, &search.Result{List: &users, Total: total})
 }

@@ -19,11 +19,11 @@ import (
 
 type ApplicationContext struct {
 	Health       *health.Handler
-	Location     location.LocationHandler
-	LocationRate rate.RateHandler
-	Event        event.EventHandler
-	Bookable     bookable.BookableHandler
-	Tour         tour.TourHandler
+	Location     location.LocationTranport
+	LocationRate rate.RateTranport
+	Event        event.EventTranport
+	Bookable     bookable.BookableTranport
+	Tour         tour.TourTranport
 }
 
 func NewApp(ctx context.Context, cfg Config) (*ApplicationContext, error) {
@@ -37,11 +37,11 @@ func NewApp(ctx context.Context, cfg Config) (*ApplicationContext, error) {
 	mongoChecker := hm.NewHealthChecker(client)
 	healthHandler := health.NewHandler(mongoChecker)
 
-	locationHandler := location.NewLocationTransport(db, logError, nil)
-	locationRateHandler := rate.NewRateTransport(db, logError, nil)
-	eventHandler := event.NewEventTransport(db, logError, nil)
-	bookableHandler := bookable.NewBookableTransport(db, logError, nil)
-	tourHandler := tour.NewTourTransport(db, logError, nil)
+	locationHandler := location.NewLocationTransport(db, logError)
+	locationRateHandler := rate.NewRateTransport(db, logError)
+	eventHandler := event.NewEventTransport(db, logError)
+	bookableHandler := bookable.NewBookableTransport(db, logError)
+	tourHandler := tour.NewTourTransport(db, logError)
 
 	return &ApplicationContext{
 		Health:       healthHandler,
