@@ -3,8 +3,8 @@ package app
 import (
 	"github.com/core-go/core/cors"
 	"github.com/core-go/core/server"
-	"github.com/core-go/log"
 	mid "github.com/core-go/log/middleware"
+	"github.com/core-go/log/zap"
 )
 
 type Config struct {

@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/core-go/config"
 	"github.com/core-go/core/cors"
 	svr "github.com/core-go/core/server"
-	"github.com/core-go/log"
 	mid "github.com/core-go/log/middleware"
+	"github.com/core-go/log/zap"
 	"github.com/gorilla/mux"
 
 	"go-service/internal/app"

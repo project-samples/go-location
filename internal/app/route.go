@@ -2,8 +2,9 @@ package app
 
 import (
 	"context"
-	. "github.com/core-go/core/constants"
 	"github.com/gorilla/mux"
+
+	. "github.com/core-go/core/constants"
 )
 
 func Route(r *mux.Router, ctx context.Context, conf Config) error {
@@ -18,7 +19,7 @@ func Route(r *mux.Router, ctx context.Context, conf Config) error {
 	r.HandleFunc(location+"/search", app.Location.Search).Methods(GET, POST)
 	r.HandleFunc(location+"/{id}", app.Location.Load).Methods(GET)
 
-	locationRate := "/locationsrate"
+	locationRate := "/location-rates"
 	r.HandleFunc(locationRate+"/search", app.LocationRate.Search).Methods(GET, POST)
 	r.HandleFunc(locationRate+"/{id}", app.LocationRate.Load).Methods(GET)
 

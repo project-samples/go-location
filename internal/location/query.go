@@ -18,7 +18,7 @@ type LocationQuery interface {
 	Search(ctx context.Context, filter *LocationFilter, limit int64, offset int64) ([]Location, int64, error)
 }
 
-func NewLocationService(db *mongo.Database) LocationQuery {
+func NewLocationQuery(db *mongo.Database) LocationQuery {
 	queryLocation := mq.UseQuery[Location, *LocationFilter]()
 	mapper := geo.NewMapper[Location]()
 	return &LocationService{db.Collection("location"), db.Collection("locationInfo"), mapper.DbToModel, queryLocation}

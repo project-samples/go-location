@@ -13,7 +13,7 @@ type LocationTranport interface {
 }
 
 func NewLocationTransport(db *mongo.Database, logError func(context.Context, string, ...map[string]interface{})) LocationTranport {
-	locationService := NewLocationService(db)
+	locationService := NewLocationQuery(db)
 	locationHandler := NewLocationHandler(locationService, logError)
 	return locationHandler
 }
