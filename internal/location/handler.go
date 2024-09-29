@@ -9,7 +9,7 @@ import (
 )
 
 func NewLocationHandler(query LocationQuery, logError core.Log) *LocationHandler {
-	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(LocationFilter{}))
+	paramIndex, filterIndex := search.BuildAttributes(reflect.TypeOf(LocationFilter{}))
 	return &LocationHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
@@ -21,8 +21,8 @@ type LocationHandler struct {
 }
 
 func (h *LocationHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := core.GetRequiredParam(w, r)
-	if len(id) > 0 {
+	id, err := core.GetRequiredString(w, r)
+	if err == nil {
 		location, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -38,7 +38,11 @@ func (h *LocationHandler) Load(w http.ResponseWriter, r *http.Request) {
 
 func (h *LocationHandler) Search(w http.ResponseWriter, r *http.Request) {
 	filter := LocationFilter{Filter: &search.Filter{}}
-	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+	err := search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	offset := search.GetOffset(filter.Limit, filter.Page)
 	var users []Location

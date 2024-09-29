@@ -9,7 +9,7 @@ import (
 )
 
 func NewRateHandler(query RateQuery, logError core.Log) *RateHandler {
-	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(RateFilter{}))
+	paramIndex, filterIndex := search.BuildAttributes(reflect.TypeOf(RateFilter{}))
 	return &RateHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
@@ -21,8 +21,8 @@ type RateHandler struct {
 }
 
 func (h *RateHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := core.GetRequiredParam(w, r)
-	if len(id) > 0 {
+	id, err := core.GetRequiredString(w, r)
+	if err == nil {
 		rate, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -38,7 +38,11 @@ func (h *RateHandler) Load(w http.ResponseWriter, r *http.Request) {
 
 func (h *RateHandler) Search(w http.ResponseWriter, r *http.Request) {
 	filter := RateFilter{Filter: &search.Filter{}}
-	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+	err := search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	offset := search.GetOffset(filter.Limit, filter.Page)
 	var users []Rate

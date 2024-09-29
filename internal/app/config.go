@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	Server     server.ServerConf `mapstructure:"server"`
-	Allow      cors.AllowConfig  `mapstructure:"allow"`
-	Mongo      MongoConfig       `mapstructure:"mongo"`
-	Log        log.Config        `mapstructure:"log"`
-	MiddleWare mid.LogConfig     `mapstructure:"middleware"`
+	Server     server.ServerConfig `mapstructure:"server"`
+	Allow      cors.AllowConfig    `mapstructure:"allow"`
+	Mongo      MongoConfig         `mapstructure:"mongo"`
+	Log        log.Config          `mapstructure:"log"`
+	MiddleWare mid.LogConfig       `mapstructure:"middleware"`
 }
 
 type MongoConfig struct {

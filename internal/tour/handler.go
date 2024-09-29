@@ -9,7 +9,7 @@ import (
 )
 
 func NewTourHandler(query TourQuery, logError core.Log) *TourHandler {
-	paramIndex, filterIndex := search.BuildParams(reflect.TypeOf(TourFilter{}))
+	paramIndex, filterIndex := search.BuildAttributes(reflect.TypeOf(TourFilter{}))
 	return &TourHandler{query: query, logError: logError, paramIndex: paramIndex, filterIndex: filterIndex}
 }
 
@@ -21,8 +21,8 @@ type TourHandler struct {
 }
 
 func (h *TourHandler) Load(w http.ResponseWriter, r *http.Request) {
-	id := core.GetRequiredParam(w, r)
-	if len(id) > 0 {
+	id, err := core.GetRequiredString(w, r)
+	if err == nil {
 		tour, err := h.query.Load(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -38,7 +38,11 @@ func (h *TourHandler) Load(w http.ResponseWriter, r *http.Request) {
 
 func (h *TourHandler) Search(w http.ResponseWriter, r *http.Request) {
 	filter := TourFilter{Filter: &search.Filter{}}
-	search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+	err := search.Decode(r, &filter, h.paramIndex, h.filterIndex)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	offset := search.GetOffset(filter.Limit, filter.Page)
 	var users []Tour
